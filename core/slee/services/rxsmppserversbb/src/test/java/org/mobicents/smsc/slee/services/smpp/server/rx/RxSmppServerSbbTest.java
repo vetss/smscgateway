@@ -23,6 +23,7 @@
 package org.mobicents.smsc.slee.services.smpp.server.rx;
 
 import static org.testng.Assert.*;
+import io.netty.channel.Channel;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -55,7 +56,6 @@ import javax.slee.resource.StartActivityException;
 import javax.slee.serviceactivity.ServiceActivityContextInterfaceFactory;
 import javax.slee.serviceactivity.ServiceActivityFactory;
 
-import org.jboss.netty.channel.Channel;
 import org.mobicents.slee.SbbContextExt;
 import org.mobicents.slee.SbbLocalObjectExt;
 import org.mobicents.smsc.cassandra.PersistenceException;

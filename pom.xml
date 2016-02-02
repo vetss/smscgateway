@@ -30,8 +30,8 @@
 		<log4j.version>1.2.14</log4j.version>
 		<junit.version>3.8.1</junit.version>
 		<!-- cloudhopper smpp -->
-		<ch.smpp.namespace>com.fizzed</ch.smpp.namespace> <!-- com.fizzed com.cloudhopper -->
-		<ch.smpp.version>5.0.10-SNAPSHOT</ch.smpp.version> <!-- 5.0.9 -->
+		<ch.smpp.namespace>com.cloudhopper</ch.smpp.namespace> <!-- com.fizzed com.cloudhopper -->
+		<ch.smpp.version>6.0.0-netty4-beta-3-SNAPSHOT</ch.smpp.version> <!-- 5.0.9 5.0.10-SNAPSHOT 6.0.0-netty4-beta-3-SNAPSHOT -->
 		<slf4j.version>1.7.10</slf4j.version> <!-- 1.5.6, 1.6.0 -->
 
 		<!-- Cassandra Driver and dependency 1.0.2 1.2.6 -->
@@ -42,7 +42,7 @@
 		
 		<google-guava.version>14.0.1</google-guava.version>
         <codahale-metrics.version>3.0.2</codahale-metrics.version> <!-- 3.0.1 -->
-		<netty.version>3.9.0.Final</netty.version>  <!-- 3.6.3.Final -->
+		<netty.version>4.0.27.Final</netty.version>  <!-- 3.6.3.Final 3.9.0.Final  -->
 
 		<!-- Cassandra Driver and dependency 1.0.2 1.2.6 -->
 		<cassandra-driver-core.version>2.1.6</cassandra-driver-core.version> <!-- 2.0.2, 2.0.10, 2.1.6 -->

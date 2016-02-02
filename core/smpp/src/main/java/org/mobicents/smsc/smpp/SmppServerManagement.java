@@ -21,6 +21,8 @@
  */
 package org.mobicents.smsc.smpp;
 
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,8 +34,6 @@ import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javolution.text.TextBuilder;
@@ -80,7 +80,8 @@ public class SmppServerManagement extends SslConfigurationWrapper implements Smp
 	private String persistDir = null;
 
 	final private String name;
-	private ThreadPoolExecutor executor;
+    private NioEventLoopGroup workerGroup;
+    private NioEventLoopGroup bossGroup;
 	private ScheduledThreadPoolExecutor monitorExecutor;
 	private final EsmeManagement esmeManagement;
 
@@ -255,7 +256,9 @@ public class SmppServerManagement extends SslConfigurationWrapper implements Smp
 		// executor.getActiveCount() via JMX possible no point renaming the
 		// threads in a factory since underlying Netty framework does not easily
 		// allow you to customize your thread names
-		this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        this.workerGroup = new NioEventLoopGroup();
+        this.bossGroup = new NioEventLoopGroup(1);
+        //		this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		// to enable automatic expiration of requests, a second scheduled
 		// executor is required which is what a monitor task will be executed
@@ -273,8 +276,8 @@ public class SmppServerManagement extends SslConfigurationWrapper implements Smp
 		});
 
 		// create a server, start it up
-		this.defaultSmppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(esmeManagement,
-				this.smppSessionHandlerInterface), executor, monitorExecutor);
+        this.defaultSmppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(esmeManagement,
+                this.smppSessionHandlerInterface), monitorExecutor, bossGroup, workerGroup);
 		logger.info("Starting SMPP server...");
 		this.defaultSmppServer.start();
 		logger.info("SMPP server started");
@@ -288,9 +291,10 @@ public class SmppServerManagement extends SslConfigurationWrapper implements Smp
 		// this.executor.shutdownNow();
 		this.monitorExecutor.shutdownNow();
 
-		this.executor.awaitTermination(10, TimeUnit.SECONDS);
-		this.executor.shutdown();
-		// this.monitorExecutor.shutdown();
+//		this.executor.awaitTermination(10, TimeUnit.SECONDS);
+//		this.executor.shutdown();
+        this.bossGroup.shutdownGracefully();
+        this.workerGroup.shutdownGracefully();
 
 		logger.info("SMPP server stopped");
 		logger.info(String.format("Server counters: %s", this.defaultSmppServer.getCounters()));

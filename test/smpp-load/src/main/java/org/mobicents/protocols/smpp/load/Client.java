@@ -21,6 +21,8 @@
  */
 package org.mobicents.protocols.smpp.load;
 
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -221,10 +223,12 @@ public class Client extends TestHarness {
 		// value to make sure it matches the actual number of total concurrent
 		// open sessions you plan on handling - the underlying netty library
 		// used for NIO sockets essentially uses this value as the max number of
-		// threads it will ever use, despite the "max pool size", etc. set on
-		// the executor passed in here
-		DefaultSmppClient clientBootstrap = new DefaultSmppClient(Executors.newCachedThreadPool(), this.sessionCount,
-				monitorExecutor);
+        // threads it will ever use, despite the "max pool size", etc. set on
+        // the executor passed in here
+        // DefaultSmppClient clientBootstrap = new DefaultSmppClient(Executors.newCachedThreadPool(), this.sessionCount,
+        // monitorExecutor);
+        DefaultSmppClient clientBootstrap = new DefaultSmppClient(new NioEventLoopGroup(), monitorExecutor);
+        // NioEventLoopGroup workerGroup, ScheduledExecutorService monitorExecutor
 
 		// same configuration for each client runner
 		SmppSessionConfiguration config = new SmppSessionConfiguration();

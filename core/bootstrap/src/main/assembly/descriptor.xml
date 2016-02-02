@@ -22,7 +22,7 @@
 				<include>com.codahale.metrics:metrics-core</include>
 
 				<include>com.google.guava:guava</include>
-				<include>io.netty:netty</include>
+				<include>io.netty:netty-all</include>
 				<include>org.codehaus.jackson:jackson-core-asl</include>
 				<include>org.codehaus.jackson:jackson-mapper-asl</include>
 
@@ -35,7 +35,7 @@
 				<include>org.mobicents.smsc:mproc-api</include>
 
 				<!-- cloudhopper library -->
-				<include>com.fizzed:ch-smpp</include>
+				<include>com.cloudhopper:ch-smpp</include>       <!-- com.fizzed -->
 				<include>com.cloudhopper:ch-commons-charset</include>
 				<include>com.cloudhopper:ch-commons-util</include>
 				<include>joda-time:joda-time</include>

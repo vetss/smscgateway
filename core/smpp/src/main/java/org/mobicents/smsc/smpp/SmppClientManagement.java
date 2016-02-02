@@ -21,10 +21,11 @@
  */
 package org.mobicents.smsc.smpp;
 
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javolution.util.FastList;
@@ -43,7 +44,7 @@ public class SmppClientManagement implements SmppClientManagementMBean {
 
 	private final String name;
 
-	private ThreadPoolExecutor executor;
+	private NioEventLoopGroup workerGroup;
 	private ScheduledThreadPoolExecutor monitorExecutor;
 
 	private DefaultSmppClient clientBootstrap = null;
@@ -70,7 +71,8 @@ public class SmppClientManagement implements SmppClientManagementMBean {
 		// executor.getActiveCount() via JMX possible no point renaming the
 		// threads in a factory since underlying Netty framework does not easily
 		// allow you to customize your thread names
-		this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        this.workerGroup = new NioEventLoopGroup();
+        // (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
 		// to enable automatic expiration of requests, a second scheduled
 		// executor is required which is what a monitor task will be executed
@@ -100,7 +102,8 @@ public class SmppClientManagement implements SmppClientManagementMBean {
 
 		// Setting expected session to be 25. May be this should be
 		// configurable?
-		this.clientBootstrap = new DefaultSmppClient(this.executor, 25, monitorExecutor);
+//        this.clientBootstrap = new DefaultSmppClient(this.workerGroup, 25, monitorExecutor);
+        this.clientBootstrap = new DefaultSmppClient(this.workerGroup, monitorExecutor);
 
 		this.smppClientOpsThread = new SmppClientOpsThread(this.clientBootstrap, this.smppSessionHandlerInterface);
 
@@ -121,7 +124,7 @@ public class SmppClientManagement implements SmppClientManagementMBean {
 		this.smppClientOpsThread.setStarted(false);
 		this.clientBootstrap.destroy();
 
-		this.executor.shutdownNow();
+		this.workerGroup.shutdownGracefully();
 		this.monitorExecutor.shutdownNow();
 	}
 

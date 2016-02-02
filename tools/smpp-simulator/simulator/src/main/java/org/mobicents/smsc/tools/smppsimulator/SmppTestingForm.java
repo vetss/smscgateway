@@ -22,6 +22,8 @@
 
 package org.mobicents.smsc.tools.smppsimulator;
 
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -101,7 +103,6 @@ import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JLabel;
@@ -133,7 +134,8 @@ public class SmppTestingForm extends JDialog implements SmppAccepter {
     private JRadioButton rbBulkMessagesFrom;
     private JButton btPcapFileName;
 
-	private ThreadPoolExecutor executor;
+    private NioEventLoopGroup workerGroup;
+    private NioEventLoopGroup bossGroup;
 	private ScheduledThreadPoolExecutor monitorExecutor;
 	private TestSmppClient clientBootstrap;
 	private SmppSession session0;
@@ -755,7 +757,9 @@ public class SmppTestingForm extends JDialog implements SmppAccepter {
 
         this.addMessage("Trying to start a new " + this.param.getSmppSessionType() + " session", "");
 
-        this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+//        this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        this.workerGroup = new NioEventLoopGroup();
+        this.bossGroup = new NioEventLoopGroup(1);
         this.monitorExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, new ThreadFactory() {
             private AtomicInteger sequence = new AtomicInteger(0);
 
@@ -768,7 +772,8 @@ public class SmppTestingForm extends JDialog implements SmppAccepter {
         });
 
         if (this.param.getSmppSessionType() == SmppSession.Type.CLIENT) {
-            clientBootstrap = new TestSmppClient(Executors.newCachedThreadPool(), 1, monitorExecutor);
+            clientBootstrap = new TestSmppClient(new NioEventLoopGroup(), 1, monitorExecutor);
+//            clientBootstrap = new TestSmppClient(Executors.newCachedThreadPool(), 1, monitorExecutor);
 
             DefaultSmppSessionHandler sessionHandler = new ClientSmppSessionHandler(this);
 
@@ -821,7 +826,8 @@ public class SmppTestingForm extends JDialog implements SmppAccepter {
 
             configuration.setJmxEnabled(false);
 
-            this.defaultSmppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(this), executor, monitorExecutor);
+            this.defaultSmppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(this), monitorExecutor,
+                    bossGroup, workerGroup);
             try {
                 this.defaultSmppServer.start();
             } catch (SmppChannelException e1) {
@@ -858,14 +864,17 @@ public class SmppTestingForm extends JDialog implements SmppAccepter {
 		if (clientBootstrap != null) {
 			try {
 				clientBootstrap.destroy();
-				executor.shutdownNow();
+                this.bossGroup.shutdownGracefully();
+                this.workerGroup.shutdownGracefully();
+//				executor.shutdownNow();
 				monitorExecutor.shutdownNow();
 			} catch (Exception e) {
 
 			}
 
 			clientBootstrap = null;
-			executor = null;
+            this.bossGroup = null;
+            this.workerGroup = null;
 			monitorExecutor = null;
 		}
 

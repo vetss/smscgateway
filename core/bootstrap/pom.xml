@@ -60,9 +60,10 @@
 			<artifactId>guava</artifactId>
 			<version>${google-guava.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
+			<artifactId>netty-all</artifactId>
 			<version>${netty.version}</version>
 		</dependency>
 

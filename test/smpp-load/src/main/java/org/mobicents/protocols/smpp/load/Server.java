@@ -21,11 +21,12 @@
  */
 package org.mobicents.protocols.smpp.load;
 
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
@@ -120,8 +121,10 @@ public class Server extends TestHarness {
         // this permits exposing thinks like executor.getActiveCount() via JMX possible
         // no point renaming the threads in a factory since underlying Netty 
         // framework does not easily allow you to customize your thread names
-        ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newCachedThreadPool();
-        
+		NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+		NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        // ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newCachedThreadPool();
+
         // to enable automatic expiration of requests, a second scheduled executor
         // is required which is what a monitor task will be executed with - this
         // is probably a thread pool that can be shared with between all client bootstraps
@@ -149,7 +152,12 @@ public class Server extends TestHarness {
         configuration.setJmxEnabled(jmxEnabled);
         
         // create a server, start it up
-        DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), executor, monitorExecutor);
+        DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), monitorExecutor,
+                bossGroup, workerGroup);
+
+//        final SmppServerConfiguration configuration, SmppServerHandler serverHandler,
+//        ScheduledExecutorService monitorExecutor, EventLoopGroup bossGroup,
+//        EventLoopGroup workerGroup
 
         logger.info("Starting SMPP server...");
         smppServer.start();

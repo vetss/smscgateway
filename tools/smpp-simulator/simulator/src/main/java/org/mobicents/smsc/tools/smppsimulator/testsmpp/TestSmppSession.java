@@ -1,10 +1,10 @@
 package org.mobicents.smsc.tools.smppsimulator.testsmpp;
 
-import java.util.concurrent.ScheduledExecutorService;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
+import java.util.concurrent.ScheduledExecutorService;
 
 import com.cloudhopper.commons.util.windowing.DuplicateKeyException;
 import com.cloudhopper.commons.util.windowing.OfferTimeoutException;
@@ -39,7 +39,7 @@ public class TestSmppSession extends DefaultSmppSession {
         malformedPacket = true;
     }
 
-    protected PduTranscoder getTranscoder() {
+    public PduTranscoder getTranscoder() {
         return super.getTranscoder();
     }
 
@@ -57,7 +57,7 @@ public class TestSmppSession extends DefaultSmppSession {
         }
 
         // encode the pdu into a buffer
-        ChannelBuffer buffer;
+        ByteBuf buffer;
         if (this.malformedPacket) {
             this.malformedPacket = false;
             buffer = this.testPduTranscoder.encode(pdu);
@@ -99,7 +99,7 @@ public class TestSmppSession extends DefaultSmppSession {
         // check if the write was a success
         if (!channelFuture.isSuccess()) {
             // the write failed, make sure to throw an exception
-            throw new SmppChannelException(channelFuture.getCause().getMessage(), channelFuture.getCause());
+            throw new SmppChannelException(channelFuture.cause().getMessage(), channelFuture.cause());
         }
 
 //        this.countSendRequestPdu(pdu);

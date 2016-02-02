@@ -15,7 +15,9 @@
 	<path id="project.class.path">
 		<pathelement location="${assemble.dir}/smpp-load-@project.version@.jar" />
 		<pathelement location="${assemble.dir}/ch-smpp-@ch.smpp.version@.jar" />
+<!--
 		<pathelement location="${assemble.dir}/netty-@netty.version@.jar" />
+-->
 		<pathelement location="${assemble.dir}/slf4j-api-@slf4j.version@.jar" />
 		<pathelement location="${assemble.dir}/slf4j-log4j12-@slf4j.version@.jar" />
 

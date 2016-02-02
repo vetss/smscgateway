@@ -22,11 +22,11 @@
 
 package org.mobicents.smsc.tools.smppsimulator;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 import java.io.FileInputStream;
 import java.io.IOException;
-
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 
 import com.cloudhopper.smpp.pdu.DataSm;
 import com.cloudhopper.smpp.pdu.DeliverSm;
@@ -182,7 +182,7 @@ public class SmppPcapParser {
     }
 
     private void parseSmppPacket(byte[] data) throws Exception {
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(data);
+        ByteBuf buffer = Unpooled.wrappedBuffer(data);
         try {
             Pdu pdu = this.dpt.decode(buffer);
 

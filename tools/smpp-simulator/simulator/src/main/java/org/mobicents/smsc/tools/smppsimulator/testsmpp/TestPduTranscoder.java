@@ -1,7 +1,7 @@
 package org.mobicents.smsc.tools.smppsimulator.testsmpp;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import com.cloudhopper.smpp.pdu.Pdu;
 import com.cloudhopper.smpp.transcoder.PduTranscoder;
@@ -11,7 +11,7 @@ import com.cloudhopper.smpp.type.UnrecoverablePduException;
 public class TestPduTranscoder implements PduTranscoder {
 
     @Override
-    public ChannelBuffer encode(Pdu pdu) throws UnrecoverablePduException, RecoverablePduException {
+    public ByteBuf encode(Pdu pdu) throws UnrecoverablePduException, RecoverablePduException {
         // TODO Auto-generated method stub
 
         byte[] buf = new byte[] {
@@ -59,12 +59,12 @@ public class TestPduTranscoder implements PduTranscoder {
                 
         };
 
-        ChannelBuffer cb = ChannelBuffers.wrappedBuffer(buf);
+        ByteBuf cb = Unpooled.wrappedBuffer(buf);
         return cb;
     }
 
     @Override
-    public Pdu decode(ChannelBuffer buffer) throws UnrecoverablePduException, RecoverablePduException {
+    public Pdu decode(ByteBuf buffer) throws UnrecoverablePduException, RecoverablePduException {
         // TODO Auto-generated method stub
         return null;
     }
