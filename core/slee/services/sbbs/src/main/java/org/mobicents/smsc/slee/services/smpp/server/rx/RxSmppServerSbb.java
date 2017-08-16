@@ -767,8 +767,10 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
                             pendingMessages.add(currData);
                         } else {
                             SentItem sentItem = sendNextChunk(currData, smsSet, esme);
-                            sms.setTimestampB(System.currentTimeMillis());
+                            long t = System.currentTimeMillis();
+                            sms.setTimestampB(t);
                             sentSequenceNumber = sentItem.getRemoteSequenceNumber();
+                            sms.putMsgPartDeliveryTime(sentSequenceNumber, t);
                         }
 
                         if (logger.isInfoEnabled()) {
@@ -834,8 +836,10 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
                             pendingMessages.add(currData);
                         } else {
                             SentItem sentItem = sendNextChunk(currData, smsSet, esme);
-                            sms.setTimestampB(System.currentTimeMillis());
+                            long t = System.currentTimeMillis();
+                            sms.setTimestampB(t);
                             sentSequenceNumber = sentItem.getRemoteSequenceNumber();
+                            sms.putMsgPartDeliveryTime(sentSequenceNumber, t);
                         }
 
                         if (logger.isInfoEnabled()) {
@@ -1008,9 +1012,12 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
             smscStatAggregator.updateMsgOutSentAll();
             smscStatAggregator.updateMsgOutSentSmpp();
 
+            boolean destAddressLimitationEnabled = false;
             EsmeManagement esmeManagement = EsmeManagement.getInstance();
             Esme esme = esmeManagement.getEsmeByClusterName(smsSet.getDestClusterName());
-            boolean destAddressLimitationEnabled = esme.getDestAddrSendLimit() != 0;
+            if (esme != null) {
+                destAddressLimitationEnabled = esme.getDestAddrSendLimit() != 0;
+            }
 
             int realID = -1;
             Boolean sentListChanged = false;
@@ -1046,7 +1053,10 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
                 return;
             }
 
-            confirmMessageInSendingPool.sms.setTimestampC(System.currentTimeMillis());
+            Sms sms = confirmMessageInSendingPool.sms;
+            if (sms != null) {
+                sms.setTimestampC(System.currentTimeMillis());
+            }
             if (destAddressLimitationEnabled) {
                 ChunkDataList dataList = retreivePendingChunks();
                 if (dataList != null && !dataList.getPendingList().isEmpty()) {
@@ -1069,9 +1079,8 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
             if (sentListChanged)
                 setSentChunks(list);
 
-            Sms sms = confirmMessageInSendingPool.sms;
             if (!confirmMessageInSendingPool.confirmed) {
-                this.generateCDR(sms, CdrGenerator.CDR_PARTIAL_ESME, CdrGenerator.CDR_SUCCESS_NO_REASON, true, false);
+                this.generateCDR(sms, CdrGenerator.CDR_PARTIAL_ESME, CdrGenerator.CDR_SUCCESS_NO_REASON, true, false, event.getSequenceNumber());
 
                 String messageType = esme.getSmppSessionType() == Type.CLIENT ? CdrDetailedGenerator.CDR_MSG_TYPE_SUBMITSM
                         : CdrDetailedGenerator.CDR_MSG_TYPE_DELIVERSM;
@@ -1105,7 +1114,7 @@ public abstract class RxSmppServerSbb extends DeliveryCommonSbb implements Sbb {
             // success CDR generating
             boolean isPartial = MessageUtil.isSmsNotLastSegment(sms);
             this.generateCDR(sms, isPartial ? CdrGenerator.CDR_PARTIAL_ESME : CdrGenerator.CDR_SUCCESS_ESME,
-                    CdrGenerator.CDR_SUCCESS_NO_REASON, confirmMessageInSendingPool.splittedMessage, true);
+                    CdrGenerator.CDR_SUCCESS_NO_REASON, confirmMessageInSendingPool.splittedMessage, true, event.getSequenceNumber());
 
             String messageType = esme.getSmppSessionType() == Type.CLIENT ? CdrDetailedGenerator.CDR_MSG_TYPE_SUBMITSM
                     : CdrDetailedGenerator.CDR_MSG_TYPE_DELIVERSM;
