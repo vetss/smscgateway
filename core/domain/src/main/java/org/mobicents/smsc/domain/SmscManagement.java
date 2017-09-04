@@ -38,12 +38,13 @@ import javax.management.ObjectName;
 
 import javolution.text.TextBuilder;
 import javolution.util.FastList;
-
 import org.apache.log4j.Logger;
 import org.jboss.mx.util.MBeanServerLocator;
 import org.mobicents.smsc.cassandra.DBOperations;
 import org.mobicents.smsc.library.SmsSetCache;
 import org.mobicents.smsc.mproc.MProcRuleFactory;
+import org.mobicents.smsc.utils.SplitMessageCache;
+import org.mobicents.smsc.utils.SplitMessageCacheMBean;
 import org.restcomm.smpp.SmppManagement;
 
 /**
@@ -67,6 +68,7 @@ public class SmscManagement implements SmscManagementMBean {
     public static final String JMX_LAYER_HTTPUSER_MANAGEMENT = "HttpUserManagement";
 
 	public static final String JMX_LAYER_DATABASE_SMS_ROUTING_RULE = "DatabaseSmsRoutingRule";
+    public static final String JMX_LAYER_SPLIT_MESSAGE_CACHE = "SplitMessageCache";
 
 	public static final String SMSC_PERSIST_DIR_KEY = "smsc.persist.dir";
 	public static final String USER_DIR_KEY = "user.dir";
@@ -99,6 +101,8 @@ public class SmscManagement implements SmscManagementMBean {
 	private static SmscManagement instance = null;
 
 	private static SmscStatProvider smscStatProvider = null;
+
+    private SplitMessageCache splitMessageCache = null;
 
 	private SmsRoutingRule smsRoutingRule = null;
 	private FastList<MProcRuleFactory> mprocFactories = new FastList<MProcRuleFactory>();
@@ -251,6 +255,11 @@ public class SmscManagement implements SmscManagementMBean {
         ObjectName httpUsersObjNname = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_HTTPUSER_MANAGEMENT
                 + ",name=" + this.getName());
         this.registerMBean(this.httpUsersManagement, HttpUsersManagementMBean.class, true, httpUsersObjNname);
+
+        this.splitMessageCache = splitMessageCache.getInstance();
+        ObjectName splitMessageCacheObjName = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_SPLIT_MESSAGE_CACHE
+                + ",name=" + this.getName());
+        this.registerMBean(this.splitMessageCache, SplitMessageCacheMBean.class,true,splitMessageCacheObjName);
 
         String hosts = smscPropertiesManagement.getDbHosts();
         int port = smscPropertiesManagement.getDbPort();
