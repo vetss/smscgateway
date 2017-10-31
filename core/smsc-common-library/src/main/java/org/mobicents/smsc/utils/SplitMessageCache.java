@@ -3,6 +3,11 @@ package org.mobicents.smsc.utils;
 import org.mobicents.smsc.library.Sms;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import javolution.util.FastMap;
 
 /**
  * Created by Stanis?aw Leja on 31.08.17.
@@ -16,9 +21,13 @@ public class SplitMessageCache implements SplitMessageCacheMBean {
     private static boolean balanceFlag = false;
     private static long lastChangeOfBalanceFlag;
 
+    private ScheduledExecutorService executor;
+
+    private boolean isStarted = false;
+
     public SplitMessageCache(){
-        referenceNumberMessageIdA = new HashMap<String, Long>();
-        referenceNumberMessageIdB = new HashMap<String, Long>();
+        referenceNumberMessageIdA = new FastMap<String, Long>();
+        referenceNumberMessageIdB = new FastMap<String, Long>();
         removeOlderThanXSeconds = 60;
         balanceFlag = false;
         lastChangeOfBalanceFlag = System.currentTimeMillis();
@@ -29,6 +38,48 @@ public class SplitMessageCache implements SplitMessageCacheMBean {
             instance = new SplitMessageCache();
         }
         return instance;
+    }
+
+    public void start() {
+        executor = Executors.newScheduledThreadPool(1);
+
+        CacheManTask t = new CacheManTask();
+        executor.schedule(t, removeOlderThanXSeconds / 2, TimeUnit.SECONDS);
+
+        isStarted = true;
+    }
+
+    public void stop() {
+        isStarted = false;
+
+        executor.shutdown();
+    }
+
+    public void checkAndReferenceNumber(SplitMessageData splitMessageData, Sms smsEvent) {
+        synchronized (this) {
+            String stringReferenceNumber = createStringReferenceNumber(splitMessageData.getSplitedMessageReferenceNumber(),
+                    smsEvent);
+
+            Long messageId = referenceNumberMessageIdA.get(stringReferenceNumber);
+            if (messageId != null) {
+                splitMessageData.setSplitedMessageID(messageId);
+                return;
+            }
+            messageId = referenceNumberMessageIdB.get(stringReferenceNumber);
+            if (messageId != null) {
+                splitMessageData.setSplitedMessageID(messageId);
+                return;
+            }
+
+            // messageId is not found in the cache
+            messageId = smsEvent.getMessageId();
+            splitMessageData.setSplitedMessageID(messageId);
+            if (balanceFlag) {
+                referenceNumberMessageIdA.put(stringReferenceNumber, messageId);
+            } else {
+                referenceNumberMessageIdB.put(stringReferenceNumber, messageId);
+            }
+        }
     }
 
     public void addReferenceNumber(int reference_number, Sms smsEvent, long message_id){
@@ -44,6 +95,8 @@ public class SplitMessageCache implements SplitMessageCacheMBean {
         sb.append(reference_number);
         sb.append(";");
         sb.append(smsEvent.getSourceAddr());
+        sb.append(";");
+        sb.append(smsEvent.getSmsSet().getDestAddr());
         return sb.toString();
     }
 
@@ -57,14 +110,21 @@ public class SplitMessageCache implements SplitMessageCacheMBean {
         return split[1];
     }
 
-    public synchronized void removeOldReferenceNumbers(){
-        if ((System.currentTimeMillis() -lastChangeOfBalanceFlag) > removeOlderThanXSeconds/2*1000){
-            lastChangeOfBalanceFlag = System.currentTimeMillis();
-            balanceFlag = !balanceFlag;
-            if(balanceFlag == true){
-                referenceNumberMessageIdA.clear();
-            } else{
-                referenceNumberMessageIdB.clear();
+    private String getDestAddress(String reference_number){
+        String[] split = reference_number.split(";");
+        return split[2];
+    }
+
+    public void removeOldReferenceNumbers() {
+        if ((System.currentTimeMillis() - lastChangeOfBalanceFlag) > removeOlderThanXSeconds / 2 * 1000) {
+            synchronized (this) {
+                lastChangeOfBalanceFlag = System.currentTimeMillis();
+                balanceFlag = !balanceFlag;
+                if (balanceFlag == true) {
+                    referenceNumberMessageIdA.clear();
+                } else {
+                    referenceNumberMessageIdB.clear();
+                }
             }
         }
     }
@@ -88,5 +148,18 @@ public class SplitMessageCache implements SplitMessageCacheMBean {
 
     public int getRemoveOlderThanXSeconds(){
         return this.removeOlderThanXSeconds;
+    }
+
+    private class CacheManTask implements Runnable {
+        public void run() {
+            try {
+                removeOldReferenceNumbers();
+            } finally {
+                if (isStarted) {
+                    CacheManTask t = new CacheManTask();
+                    executor.schedule(t, removeOlderThanXSeconds / 2, TimeUnit.SECONDS);
+                }
+            }
+        }
     }
 }

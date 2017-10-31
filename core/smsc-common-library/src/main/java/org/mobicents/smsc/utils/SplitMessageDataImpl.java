@@ -18,7 +18,7 @@ public class SplitMessageDataImpl implements SplitMessageData{
         setSplitedMessagePartNumber(0);
         setSplitedMessageID(0);
         setMsgSplitInUse(false);
-        splitMessageCache = splitMessageCache.getInstance();
+        splitMessageCache = SplitMessageCache.getInstance();
     }
 
     @Override

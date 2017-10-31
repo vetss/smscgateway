@@ -7,11 +7,13 @@ import org.mobicents.smsc.library.Sms;
  */
 public interface SplitMessageCacheMBean {
 
-    public void addReferenceNumber(int reference_number, Sms smsEvent,long message_id);
+    public void checkAndReferenceNumber(SplitMessageData splitMessageData, Sms smsEvent);
 
-    public int checkExistenceOfReferenceNumberInCache(int reference_number, Sms smsEvent);
-
-    public long getMessageIdByReferenceNumber(int reference_number, Sms smsEvent,boolean queueFlag);
+//    public void addReferenceNumber(int reference_number, Sms smsEvent,long message_id);
+//
+//    public int checkExistenceOfReferenceNumberInCache(int reference_number, Sms smsEvent);
+//
+//    public long getMessageIdByReferenceNumber(int reference_number, Sms smsEvent,boolean queueFlag);
 
     public void removeOldReferenceNumbers();
 

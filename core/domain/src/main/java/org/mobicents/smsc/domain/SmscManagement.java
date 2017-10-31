@@ -256,7 +256,9 @@ public class SmscManagement implements SmscManagementMBean {
                 + ",name=" + this.getName());
         this.registerMBean(this.httpUsersManagement, HttpUsersManagementMBean.class, true, httpUsersObjNname);
 
-        this.splitMessageCache = splitMessageCache.getInstance();
+        this.splitMessageCache = SplitMessageCache.getInstance();
+        this.splitMessageCache.start();
+
         ObjectName splitMessageCacheObjName = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_SPLIT_MESSAGE_CACHE
                 + ",name=" + this.getName());
         this.registerMBean(this.splitMessageCache, SplitMessageCacheMBean.class,true,splitMessageCacheObjName);
@@ -378,6 +380,11 @@ public class SmscManagement implements SmscManagementMBean {
         this.homeRoutingManagement.stop();
         ObjectName hrObjNname = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_HOME_ROUTING_MANAGEMENT + ",name=" + this.getName());
         this.unregisterMbean(hrObjNname);
+
+        this.splitMessageCache.stop();
+        ObjectName splitMessageCacheObjName = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer="
+                + JMX_LAYER_SPLIT_MESSAGE_CACHE + ",name=" + this.getName());
+        this.unregisterMbean(splitMessageCacheObjName);
 
         this.httpUsersManagement.stop();
         ObjectName httpUsersObjNname = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_HTTPUSER_MANAGEMENT + ",name=" + this.getName());
