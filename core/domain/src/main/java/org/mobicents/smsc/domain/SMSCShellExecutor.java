@@ -589,6 +589,10 @@ public class SMSCShellExecutor implements ShellExecutor {
                 return this.updateCcMccmnstable(args);
             } else if (args[1].toLowerCase().equals("hrccmccmnc")) {
                 return this.ccMccmnsValueUpdate(args);
+
+            } else if (args[1].toLowerCase().equals("gsd")) {
+                return this.gsd(args);
+
             }
 
             return SMSCOAMMessages.INVALID_COMMAND;
@@ -1979,6 +1983,12 @@ public class SMSCShellExecutor implements ShellExecutor {
         } else {
             return SMSCOAMMessages.INVALID_COMMAND;
         }
+    }
+
+    public String gsd(String[] args) throws Exception {
+        SmscManagement smscManagement = SmscManagement.getInstance();
+        smscManagement.gsd();
+        return "gsd .....";
     }
 
     public String execute(String[] args) {

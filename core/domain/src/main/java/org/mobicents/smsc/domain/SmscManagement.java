@@ -24,6 +24,7 @@ package org.mobicents.smsc.domain;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.management.ManagementFactory;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +35,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import javolution.text.TextBuilder;
@@ -44,6 +46,7 @@ import org.jboss.mx.util.MBeanServerLocator;
 import org.mobicents.smsc.cassandra.DBOperations;
 import org.mobicents.smsc.library.SmsSetCache;
 import org.mobicents.smsc.mproc.MProcRuleFactory;
+import org.restcomm.slee.resource.smpp.heartbeat.SmppLoadBalancerHeartBeatingServiceImplMBean;
 import org.restcomm.smpp.SmppManagement;
 
 /**
@@ -211,6 +214,23 @@ public class SmscManagement implements SmscManagementMBean {
             }
         }
         return ruleClass;
+    }
+
+    public void gsd() {
+        try {
+            MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+            String beanName = "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA";
+            ObjectName objectName = new ObjectName(beanName);
+            logger.info("********* 00001 : " + objectName);
+
+            if (ManagementFactory.getPlatformMBeanServer().isRegistered(objectName)) {
+                ManagementFactory.getPlatformMBeanServer().invoke(objectName, "stop", new Object[] {}, new String[] {});
+                logger.info("********* 000020");
+            }
+        } catch (Exception ee) {
+            logger.error("********* : " + ee);
+        }
+
     }
 
 	public void start() throws Exception {
