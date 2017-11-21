@@ -26,29 +26,29 @@
 
 	<!-- Options for referring to release resoure verions -->
 	<!-- SLEE staff -->
-	<property name="restcomm-slee.build-number" value="128.93" />
+	<property name="restcomm-slee.build-number" value="148.102" />
 	<property name="restcomm-slee.version" value="2.9" />
-	<property name="restcomm-slee.release" value="2.9.128" />
+	<property name="restcomm-slee.release" value="2.9.148" />
 
 	<!-- jss7 stack and MAP RA -->
 	<property name="restcomm-jss7.build-number" value="65" />
 	<property name="restcomm-jss7.version" value="7.4.0-${restcomm-jss7.build-number}" />
 	<!-- <property name="restcomm-jss7.release" value="7.4.0-9" /> -->
 
-	<property name="restcomm-map-ra.build-number" value="71" />
+	<property name="restcomm-map-ra.build-number" value="97" />
 	<property name="restcomm-map-ra.version" value="7.4.0-${restcomm-map-ra.build-number}" />
 	<!-- <property name="restcomm-map-ra.release" value="7.4.0-17" /> -->
 
 	<!-- Diameter mux and RAs -->
-	<property name="restcomm-diam.build-number" value="178" />
+	<property name="restcomm-diam.build-number" value="201" />
 	<property name="restcomm-diam.version" value="1.7.0" />
-	<property name="restcomm-diam-ra.build-number" value="18" />
-	<property name="restcomm-diam.resources.version" value="7.1.18" />
+	<property name="restcomm-diam-ra.build-number" value="64" />
+	<property name="restcomm-diam.resources.version" value="2.9" />
 
 	<!-- SMPP extentions and and RAs -->
-	<property name="restcomm-smpp-extensions.build-number" value="73" />
+	<property name="restcomm-smpp-extensions.build-number" value="79" />
 	<property name="restcomm-smpp-extensions.version" value="7.1.0" />
-	<property name="restcomm-smpp-ra.build-number" value="68" />
+	<property name="restcomm-smpp-ra.build-number" value="74" />
 	<property name="restcomm-smpp-ra.version" value="7.1.0" />
 
 	<!-- Cassandra community version -->
@@ -87,10 +87,10 @@
 	<property name="restcomm-diam.download.distro.file" value="restcomm-diameter-${restcomm-diam.version}.${restcomm-diam.build-number}.zip" />
 	<property name="restcomm-diam.download.url" value="${cloudbees.url}/job/RestComm-jDiameter-1.x/${restcomm-diam.build-number}/artifact/release/${restcomm-diam.download.distro.file}" />
 	<property name="restcomm-diam.distro.zip.path" value="${checkout.dir}/${restcomm-diam.download.distro.file}" />
-	<property name="restcomm-diam-ra-base.download.jar.file" value="diameter-restcomm-slee-ra-diameter-base-ra-DU-${restcomm-diam.resources.version}.jar" />
+	<property name="restcomm-diam-ra-base.download.jar.file" value="diameter-restcomm-slee-ra-diameter-base-ra-DU-${restcomm-diam.resources.version}.${restcomm-diam-ra.build-number}.jar" />
 	<property name="restcomm-diam-ra-base.download.url" value="${cloudbees.url}/job/Restcomm-JAIN-SLEE-7-jDiameter-RAs/${restcomm-diam-ra.build-number}/artifact/resources/diameter-base/du/target/${restcomm-diam-ra-base.download.jar.file}" />
 	<property name="restcomm-diam-ra-base.distro.jar.path" value="${checkout.dir}/${restcomm-diam-ra-base.download.url}" />
-	<property name="restcomm-diam-ra-ro.download.jar.file" value="diameter-restcomm-slee-ra-diameter-ro-ra-DU-${restcomm-diam.resources.version}.jar" />
+	<property name="restcomm-diam-ra-ro.download.jar.file" value="diameter-restcomm-slee-ra-diameter-ro-ra-DU-${restcomm-diam.resources.version}.${restcomm-diam-ra.build-number}.jar" />
 	<property name="restcomm-diam-ra-ro.download.url" value="${cloudbees.url}/job/Restcomm-JAIN-SLEE-7-jDiameter-RAs/${restcomm-diam-ra.build-number}/artifact/resources/diameter-ro/du/target/${restcomm-diam-ra-ro.download.jar.file}" />
 	<property name="restcomm-diam-ra-ro.distro.jar.path" value="${checkout.dir}/${restcomm-diam-ra-ro.download.url}" />
 
@@ -206,8 +206,8 @@
     </target>
 
 
-	<target name="get-deps" depends="get-restcomm-slee,get-restcomm-jss7,get-restcomm-map-ra,get-restcomm-map-ra-docs,get-restcomm-diam,get-restcomm-diam-base,get-restcomm-diam-ro,get-restcomm-smpp-extensions,get-restcomm-smpp-ra,get-community-cassandra" />
-	<target name="extract-deps" depends="extract-restcomm-slee,extract-restcomm-jss7,extract-restcomm-map-ra-docs,extract-restcomm-diam,extract-restcomm-smpp-extensions,extract-community-cassandra" />
+	<target name="get-deps" depends="get-restcomm-slee,get-restcomm-jss7,get-restcomm-map-ra,get-restcomm-map-ra-docs,get-restcomm-smpp-extensions,get-restcomm-smpp-ra,get-community-cassandra" />
+	<target name="extract-deps" depends="extract-restcomm-slee,extract-restcomm-jss7,extract-restcomm-map-ra-docs,extract-restcomm-smpp-extensions,extract-community-cassandra" />
 
 	
 	<available file="${restcomm-slee.distro.zip.path}" property="got.restcomm-slee" />
@@ -432,6 +432,8 @@
 				<exclude name="**/sip11/**" />
 				<exclude name="**/http-client/**" />
 				<exclude name="**/http-servlet/**" />
+				<exclude name="**/diameter-base/**" />
+				<exclude name="**/diameter-ro/**" />
 			</fileset>
 		</delete>	
 		<delete dir="${release.dir}/docs/enablers" includeemptydirs="true" failonerror="true" />
@@ -442,6 +444,8 @@
 				<exclude name="**/sip11/**" />
 				<exclude name="**/http-client/**" />
 				<exclude name="**/http-servlet/**" />
+				<exclude name="**/diameter-base/**" />
+				<exclude name="**/diameter-ro/**" />
 			</fileset>
 		</delete>
 		<delete failonerror="true">
@@ -449,7 +453,12 @@
                     <include name="**" />
             </fileset>
 		</delete>	
-		<delete dir="${release.dir}/extra" includeemptydirs="true" failonerror="true" />
+		<delete includeemptydirs="true" failonerror="true">
+			<fileset dir="${release.dir}/extra">
+				<include name="**" />
+				<exclude name="**/restcomm-diameter/**" />
+			</fileset>
+		</delete>	
 		<delete dir="${release.dir}/enablers" includeemptydirs="true" failonerror="true" />
 		<delete dir="${release.dir}/examples" includeemptydirs="true" failonerror="true" />
 		<delete file="${release.dir}/readme.txt" failonerror="true" />
@@ -675,26 +684,37 @@
 		<copy file="${checkout.restcomm-smsc.dir}/core/bootstrap/src/main/config/ss7-simulator/main_hr_simulator2.xml" todir="${release.dir}/tools/restcomm-jss7-simulator/data" failonerror="true" />
 		<copy file="${checkout.restcomm-smsc.dir}/core/bootstrap/src/main/config/ss7-simulator/win_hr_simulator2.xml" todir="${release.dir}/tools/restcomm-jss7-simulator/data" failonerror="true" />
 
-		<!-- jDiameter - mux & RA's-->    	
+		<!-- jDiameter - mux & RA's-->
+<!--
 		<copy todir="${release.dir}/jboss-5.1.0.GA/server/default/deploy/restcomm-diameter-mux-${restcomm-diam.version}.sar" failonerror="true">
 	        <fileset dir="${checkout.restcomm-diam.dir}/core/mux/restcomm-diameter-mux.sar">
 				<include name="**" />
 			</fileset>
 		</copy>
-
 		<copy todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.sar" failonerror="true">
 			<fileset dir="${checkout.restcomm-diam.dir}/core/mux/restcomm-diameter-mux.sar">
 				<include name="**" />
 			</fileset>
 		</copy>
+-->
+		<copy todir="${release.dir}/jboss-5.1.0.GA/server/default/deploy/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar" failonerror="true">
+	        <fileset dir="${release.dir}/extra/restcomm-diameter/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar">
+				<include name="**" />
+			</fileset>
+		</copy>
+		<copy todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar" failonerror="true">
+	        <fileset dir="${release.dir}/extra/restcomm-diameter/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar">
+				<include name="**" />
+			</fileset>
+		</copy>
 
-		<copy file="${checkout.dir}/${restcomm-diam-ra-base.download.jar.file}" 
+		<copy file="${release.dir}/resources/diameter-base/${restcomm-diam-ra-base.download.jar.file}" 
 			todir="${release.dir}/jboss-5.1.0.GA/server/default/deploy" failonerror="true" />
-		<copy file="${checkout.dir}/${restcomm-diam-ra-base.download.jar.file}" 
+		<copy file="${release.dir}/resources/diameter-base/${restcomm-diam-ra-base.download.jar.file}" 
 			todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy" failonerror="true" />
-		<copy file="${checkout.dir}/${restcomm-diam-ra-ro.download.jar.file}" 
+		<copy file="${release.dir}/resources/diameter-ro/${restcomm-diam-ra-ro.download.jar.file}" 
 			todir="${release.dir}/jboss-5.1.0.GA/server/default/deploy" failonerror="true" />
-		<copy file="${checkout.dir}/${restcomm-diam-ra-ro.download.jar.file}" 
+		<copy file="${release.dir}/resources/diameter-ro/${restcomm-diam-ra-ro.download.jar.file}" 
 			todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy" failonerror="true" />
 
 		<!-- smpp ra -->
@@ -722,20 +742,20 @@
 
 		<!-- jDiameter - remove SCTP lib - we will reuse the lib from JSS7 -->    	
 		<delete includeemptydirs="true" failonerror="true">
-            <fileset dir="${release.dir}/jboss-5.1.0.GA/server/default/deploy/restcomm-diameter-mux-${restcomm-diam.version}.sar/lib">
+            <fileset dir="${release.dir}/jboss-5.1.0.GA/server/default/deploy/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar/lib">
                     <include name="sctp-api-*.jar" />
                 	<include name="sctp-impl-*.jar" />
             </fileset>
 		</delete>
 		<delete includeemptydirs="true" failonerror="true">
-            <fileset dir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.sar/lib">
+            <fileset dir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar/lib">
                     <include name="sctp-api-*.jar" />
                 	<include name="sctp-impl-*.jar" />
             </fileset>
 		</delete>
 
 		<!-- jDiameter - copying of jdiameter-config.xml into diameter mux (only simulator profile) -->    	
-		<copy todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.sar/config" failonerror="true" overwrite="true">
+		<copy todir="${release.dir}/jboss-5.1.0.GA/server/simulator/deploy/restcomm-diameter-mux-${restcomm-diam.version}.${restcomm-diam.build-number}.sar/config" failonerror="true" overwrite="true">
 			<fileset dir="${release.dir}/resources/ocs/smsc-part">
 				<include name="jdiameter-config.xml" />
 			</fileset>
