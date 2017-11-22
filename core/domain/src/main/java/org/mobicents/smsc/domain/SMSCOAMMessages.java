@@ -119,6 +119,8 @@ public interface SMSCOAMMessages {
 
     public static final String DATA_CODING_BAD_VALUES = "Value of data coding schema is bad (possible values: 0-255)";
 
+    public static final String GSD_STARTED = "Gracefull ShutDown procedure has started";
+
 	/**
 	 * Generic constants
 	 */

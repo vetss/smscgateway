@@ -32,4 +32,6 @@ public interface SmscManagementMBean {
 
 	public boolean isStarted();
 
+    public void forceGracefullShutdown();
+
 }

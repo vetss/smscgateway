@@ -1987,8 +1987,8 @@ public class SMSCShellExecutor implements ShellExecutor {
 
     public String gsd(String[] args) throws Exception {
         SmscManagement smscManagement = SmscManagement.getInstance();
-        smscManagement.gsd();
-        return "gsd .....";
+        smscManagement.forceGracefullShutdown();
+        return SMSCOAMMessages.GSD_STARTED;
     }
 
     public String execute(String[] args) {

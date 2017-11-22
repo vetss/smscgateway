@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -140,6 +141,8 @@ public class SmscPropertiesManagement implements SmscPropertiesManagementMBean {
     private static final String MAX_MESSAGE_ID = "maxMessageId";
 
     private static final String DELIVERY_PAUSE = "deliveryPause";
+    private static final String MIN_GRACEFULL_SHUTDOWN_TIME = "minGracefullShutDownTime";
+    private static final String MAX_GRACEFULL_SHUTDOWN_TIME = "maxGracefullShutDownTime";
 
     private static final String CASSANDRA_USER = "cassandraUser";
     private static final String CASSANDRA_PASS = "cassandraPass";
@@ -407,6 +410,17 @@ public class SmscPropertiesManagement implements SmscPropertiesManagementMBean {
     // SMSC accepts any incoming messages from SS7 / ESMEs / SIP (and storing
     // them into a database)
     private boolean deliveryPause = false;
+
+    // we set it to true when a gracefull shutDown procedure has started
+    private boolean gracefullShuttingDown = false;
+    // time when a a gracefull shutDown was initiated
+    private Date gracefullShutDownStart = null;
+    // min time from starting of gracefull shutDown to a real shutDown
+    // before each the server will be up even when no dialogs in processing (in seconds)
+    private int minGracefullShutDownTime = 20;
+    // max time from starting of gracefull shutDown to a real shutDown
+    // after which the server will be brought even when dialogs in processing (in seconds)
+    private int maxGracefullShutDownTime = 90;
 
     // this flag is not a storable option but a flag
     // this flag is set to true when Schedule RA is inactivated or inactivating
@@ -1261,6 +1275,48 @@ public class SmscPropertiesManagement implements SmscPropertiesManagementMBean {
     }
 
     @Override
+    public boolean isGracefullShuttingDown() {
+        return gracefullShuttingDown;
+    }
+
+    @Override
+    public void setGracefullShuttingDown(boolean gracefullShuttingDown) {
+        this.gracefullShuttingDown = gracefullShuttingDown;
+    }
+
+    @Override
+    public Date getGracefullShutDownStart() {
+        return gracefullShutDownStart;
+    }
+
+    @Override
+    public void setGracefullShutDownStart(Date gracefullShutDownStart) {
+        this.gracefullShutDownStart = gracefullShutDownStart;
+    }
+
+    @Override
+    public int getMinGracefullShutDownTime() {
+        return minGracefullShutDownTime;
+    }
+
+    @Override
+    public void setMinGracefullShutDownTime(int minGracefullShutDownTime) {
+        this.minGracefullShutDownTime = minGracefullShutDownTime;
+        this.store();
+    }
+
+    @Override
+    public int getMaxGracefullShutDownTime() {
+        return maxGracefullShutDownTime;
+    }
+
+    @Override
+    public void setMaxGracefullShutDownTime(int maxGracefullShutDownTime) {
+        this.maxGracefullShutDownTime = maxGracefullShutDownTime;
+        this.store();
+    }
+
+    @Override
     public boolean isSmscStopped() {
         return smscStopped;
     }
@@ -1521,6 +1577,8 @@ public class SmscPropertiesManagement implements SmscPropertiesManagementMBean {
 			writer.write(this.fetchMaxRows, FETCH_MAX_ROWS, Integer.class);
 
             writer.write(this.deliveryPause, DELIVERY_PAUSE, Boolean.class);
+            writer.write(this.minGracefullShutDownTime, MIN_GRACEFULL_SHUTDOWN_TIME, Integer.class);
+            writer.write(this.maxGracefullShutDownTime, MAX_GRACEFULL_SHUTDOWN_TIME, Integer.class);
 
             writer.write(this.removingLiveTablesDays, REMOVING_LIVE_TABLES_DAYS, Integer.class);
             writer.write(this.removingArchiveTablesDays, REMOVING_ARCHIVE_TABLES_DAYS, Integer.class);
@@ -1710,6 +1768,12 @@ public class SmscPropertiesManagement implements SmscPropertiesManagementMBean {
             if (valB != null) {
                 this.deliveryPause = valB.booleanValue();
             }
+            val = reader.read(MIN_GRACEFULL_SHUTDOWN_TIME, Integer.class);
+            if (val != null)
+                this.minGracefullShutDownTime = val;
+            val = reader.read(MAX_GRACEFULL_SHUTDOWN_TIME, Integer.class);
+            if (val != null)
+                this.maxGracefullShutDownTime = val;
 
             val = reader.read(REMOVING_LIVE_TABLES_DAYS, Integer.class);
             if (val != null)

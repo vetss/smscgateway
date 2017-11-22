@@ -26,16 +26,23 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.management.ManagementFactory;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
+import javax.management.MBeanInfo;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
+import javax.management.MBeanServerFactory;
 import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import javolution.text.TextBuilder;
@@ -46,7 +53,6 @@ import org.jboss.mx.util.MBeanServerLocator;
 import org.mobicents.smsc.cassandra.DBOperations;
 import org.mobicents.smsc.library.SmsSetCache;
 import org.mobicents.smsc.mproc.MProcRuleFactory;
-import org.restcomm.slee.resource.smpp.heartbeat.SmppLoadBalancerHeartBeatingServiceImplMBean;
 import org.restcomm.smpp.SmppManagement;
 
 /**
@@ -105,6 +111,12 @@ public class SmscManagement implements SmscManagementMBean {
 
 	private SmsRoutingRule smsRoutingRule = null;
 	private FastList<MProcRuleFactory> mprocFactories = new FastList<MProcRuleFactory>();
+
+//    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new DefaultThreadFactory(
+//            "SmscManagement-Thread"));
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+    private Future gsdTimerFuture;
 
 	private SmscManagement(String name) {
         this.name = name;
@@ -216,21 +228,112 @@ public class SmscManagement implements SmscManagementMBean {
         return ruleClass;
     }
 
-    public void gsd() {
-        try {
-            MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            String beanName = "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA";
-            ObjectName objectName = new ObjectName(beanName);
-            logger.info("********* 00001 : " + objectName);
+    public void forceGracefullShutdown() {
+        String[] MBEAN_NAMES_LIST = { "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA" };
 
-            if (ManagementFactory.getPlatformMBeanServer().isRegistered(objectName)) {
-                ManagementFactory.getPlatformMBeanServer().invoke(objectName, "stop", new Object[] {}, new String[] {});
-                logger.info("********* 000020");
-            }
-        } catch (Exception ee) {
-            logger.error("********* : " + ee);
+        if (smscPropertiesManagement.isGracefullShuttingDown()) {
+            logger.info("Gracefull ShutDown procedure was already initiated");
+            return;
         }
 
+        logger.info("Gracefull ShutDown procedure is initiating");
+
+        try {
+            logger.info("Gracefull ShutDown : initiated of stopping of RAs - load-balancer-heartbeat-service");
+            MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+            for (String beanName : MBEAN_NAMES_LIST) {
+                ObjectName objectName = new ObjectName(beanName);
+                if (mBeanServer.isRegistered(objectName)) {
+                    mBeanServer.invoke(objectName, "stop", new Object[] {}, new String[] {});
+                    logger.info("load-balancer-heartbeat-service stopped: " + beanName);
+                } else {
+                    logger.info("load-balancer-heartbeat-service not found: " + beanName);
+                }
+            }
+        } catch (Exception ee) {
+            logger.error("Exception when stopping of RAs - load-balancer-heartbeat-service : " + ee.getMessage(), ee);
+        }
+
+        smscPropertiesManagement.setGracefullShutDownStart(new Date());
+        smscPropertiesManagement.setGracefullShuttingDown(true);
+
+        gracefullShutdownTimerRestart();
+    }
+
+    private void gracefullShutdownTimerRestart() {
+        GracefullShutdownTask t = new GracefullShutdownTask();
+        this.gsdTimerFuture = this.executor.schedule(t, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    private void gracefullShutdownTimerStop() {
+        Future f = this.gsdTimerFuture;
+        if (f != null)
+            f.cancel(false);
+    }
+
+    private void gracefullShutdownTimerEvent() {
+        this.gsdTimerFuture = null;
+        if (!this.isStarted)
+            return;
+
+        logger.info("******* gracefullShutdownTimerEvent");
+
+        if (System.currentTimeMillis() - smscPropertiesManagement.getGracefullShutDownStart().getTime() > smscPropertiesManagement
+                .getMinGracefullShutDownTime() * 1000) {
+            if (System.currentTimeMillis() - smscPropertiesManagement.getGracefullShutDownStart().getTime() > smscPropertiesManagement
+                    .getMaxGracefullShutDownTime() * 1000) {
+                logger.info("Shutdown after maxGracefullShutDownTime is expire");
+                startServerShutdown();
+                return;
+            }
+            if (SmsSetCache.getInstance().getProcessingSmsSetSize() == 0) {
+                logger.info("Shutdown after minGracefullShutDownTime is expire and no more open dialogs");
+                startServerShutdown();
+                return;
+            }
+        }
+
+        gracefullShutdownTimerRestart();
+    }
+
+    private void startServerShutdown() {
+        try {
+            MBeanServer mbeanServer = null;
+            for (Iterator i = MBeanServerFactory.findMBeanServer(null).iterator(); i.hasNext();) {
+                MBeanServer server = (MBeanServer) i.next();
+                if (server.getDefaultDomain().equals("jboss")) {
+                    mbeanServer = server;
+                    break;
+                }
+            }
+
+            if (mbeanServer != null) {
+                // jboss 5
+
+                logger.info("Gracefull ShutDown procedure: Found jboss 5 mbeanServer=" + mbeanServer);
+                ObjectName mbeanName = new ObjectName("jboss.system:type=Server");
+                MBeanInfo jbossServerMBean = mbeanServer.getMBeanInfo(mbeanName);
+                if (jbossServerMBean != null) {
+                    Object[] args = {};
+                    String[] sigs = {};
+                    mbeanServer.invoke(mbeanName, "shutdown", args, sigs);
+                    logger.info("jboss 5 Gracefull ShutDown procedure: started of server shutting down");
+                } else {
+                    logger.warn("jboss 5 Gracefull ShutDown procedure: can not find server jboss.system:type=Server - can not make shutdown");
+                }
+            } else {
+                // wildfly
+                // TODO: implement it
+
+                MBeanServerConnection mbeanServerConnection = ManagementFactory.getPlatformMBeanServer();
+                ObjectName mbeanName = new ObjectName("jboss.as:management-root=server");
+                Object[] args = { false };
+                String[] sigs = { "java.lang.Boolean" };
+                mbeanServerConnection.invoke(mbeanName, "shutdown", args, sigs);
+            }
+        } catch (Exception e1){
+            logger.info("Gracefull ShutDown procedure Exception: " + e1.getMessage(), e1);
+        }
     }
 
 	public void start() throws Exception {
@@ -375,11 +478,15 @@ public class SmscManagement implements SmscManagementMBean {
                 + JMX_LAYER_SMSC_DATABASE_MANAGEMENT + ",name=" + this.getName());
         this.registerMBean(this.smscDatabaseManagement, SmscDatabaseManagement.class, true, smscDatabaseManagementObjName);
 
+        this.isStarted = true;
+
         logger.warn("Started SmscManagemet " + name);
 	}
 
 	public void stop() throws Exception {
 		logger.info("Stopping SmscManagemet " + name);
+
+        gracefullShutdownTimerStop();
 
 		this.smscPropertiesManagement.stop();
 		ObjectName smscObjNname = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer="
@@ -487,4 +594,11 @@ public class SmscManagement implements SmscManagementMBean {
 			logger.error(String.format("Error while unregistering MBean %s", name), e);
 		}
 	}
+
+    public class GracefullShutdownTask implements Runnable {
+        @Override
+        public void run() {
+            gracefullShutdownTimerEvent();
+        }
+    }
 }

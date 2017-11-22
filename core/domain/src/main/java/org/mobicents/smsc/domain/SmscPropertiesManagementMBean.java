@@ -22,6 +22,7 @@
 
 package org.mobicents.smsc.domain;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.mobicents.protocols.ss7.indicator.GlobalTitleIndicator;
@@ -392,5 +393,21 @@ public interface SmscPropertiesManagementMBean {
     public void setCassandraPass(String pass) throws  IllegalArgumentException;
 
     public String getCassandraPass();
+
+    public boolean isGracefullShuttingDown();
+
+    public void setGracefullShuttingDown(boolean gracefullShuttingDown);
+
+    public Date getGracefullShutDownStart();
+
+    public void setGracefullShutDownStart(Date gracefullShutDownStart);
+
+    public int getMinGracefullShutDownTime();
+
+    public void setMinGracefullShutDownTime(int minGracefullShutDownTme);
+
+    public int getMaxGracefullShutDownTime();
+
+    public void setMaxGracefullShutDownTime(int maxGracefullShutDownTme);
 
 }

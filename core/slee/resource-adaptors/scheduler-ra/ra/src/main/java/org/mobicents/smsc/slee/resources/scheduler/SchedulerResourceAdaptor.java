@@ -446,6 +446,9 @@ public class SchedulerResourceAdaptor implements ResourceAdaptor {
                 // checking if SMSC is paused by a used
                 if (smscPropertiesManagement.isDeliveryPause())
                     return;
+                // checking if SMSC is in a gracefull shutdown procedure
+                if (smscPropertiesManagement.isGracefullShuttingDown())
+                    return;
 
 	            try {
 					if (this.tracer.isFineEnabled())
