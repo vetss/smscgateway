@@ -310,16 +310,16 @@ public class SmscManagement implements SmscManagementMBean {
             if (mbeanServer != null) {
                 // jboss 5
 
-                logger.info("Gracefull ShutDown procedure: Found jboss 5 mbeanServer=" + mbeanServer);
+                logger.info("Graceful ShutDown procedure: Found jboss 5 mbeanServer=" + mbeanServer);
                 ObjectName mbeanName = new ObjectName("jboss.system:type=Server");
                 MBeanInfo jbossServerMBean = mbeanServer.getMBeanInfo(mbeanName);
                 if (jbossServerMBean != null) {
                     Object[] args = {};
                     String[] sigs = {};
                     mbeanServer.invoke(mbeanName, "shutdown", args, sigs);
-                    logger.warn("jboss 5 Gracefull ShutDown procedure: started of server shutting down");
+                    logger.warn("jboss 5 Graceful ShutDown procedure: started of server shutting down");
                 } else {
-                    logger.warn("jboss 5 Gracefull ShutDown procedure: can not find server jboss.system:type=Server - can not make shutdown");
+                    logger.warn("jboss 5 Graceful ShutDown procedure: can not find server jboss.system:type=Server - can not make shutdown");
                 }
             } else {
                 // wildfly
@@ -330,10 +330,10 @@ public class SmscManagement implements SmscManagementMBean {
                 Object[] args = { false };
                 String[] sigs = { "java.lang.Boolean" };
                 mbeanServerConnection.invoke(mbeanName, "shutdown", args, sigs);
-                logger.warn("WildFly Gracefull ShutDown procedure: started of server shutting down");
+                logger.warn("WildFly Graceful ShutDown procedure: started of server shutting down");
             }
         } catch (Exception e1){
-            logger.error("Gracefull ShutDown procedure Exception: " + e1.getMessage(), e1);
+            logger.error("Graceful ShutDown procedure Exception: " + e1.getMessage(), e1);
         }
     }
 

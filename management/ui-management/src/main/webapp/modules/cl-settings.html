@@ -94,6 +94,14 @@
 			    			$("#div-mingracefulshutdowntime").removeClass("error");		
 			    		}
 						
+						var maxgracefulshutdowntime = $("#maxgracefulshutdowntime").val();
+						if(maxgracefulshutdowntime.trim() == "") {
+			    			$("#div-maxgracefulshutdowntime").addClass("error");					    			
+			    			formInvalid = true;
+			    		} else if($("#div-maxgracefulshutdowntime").hasClass("error")) {
+			    			$("#div-maxgracefulshutdowntime").removeClass("error");		
+			    		}
+						
 						if(formInvalid) {
 							$("#login-settings-error").show();
 							logToConsole("ERROR", "Some Fields are not correctly filled out, please double check the settings !");
@@ -107,6 +115,7 @@
 						jolokia.request(
 								[
 									{ type: "write", mbean: mbeanSearch, attribute: "MinGracefulShutDownTime", value: mingracefulshutdowntime },
+									{ type: "write", mbean: mbeanSearch, attribute: "MaxGracefulShutDownTime", value: maxgracefulshutdowntime },
 								],
 								{
 									success: function(response) {
