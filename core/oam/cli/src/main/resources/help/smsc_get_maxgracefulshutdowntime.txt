@@ -1,0 +1,21 @@
+Name
+	smsc get maxngracefulshutdowntime
+
+SYNOPSIS
+	smsc get maxngracefulshutdowntime <maxGracefulShutDownTime-value>
+
+DESCRIPTION
+	This command is used to get the maxngracefulshutdowntime value.
+	When a graceful shutdown procedure has started the server will
+	wait before all dialogs are completed. This waiting will not
+	more then maxGracefulShutDownTime time (in seconds). When
+	maxGracefulShutDownTime from a graceful shutdown begin
+	the server will be brought down even there are pending dialogs.
+	Default value is 90 (seconds).
+
+EXAMPLES
+	smsc get maxngracefulshutdowntime
+
+SEE ALSO
+	smsc gsd, smsc set maxngracefulshutdowntime,
+	smsc set mingracefulshutdowntime

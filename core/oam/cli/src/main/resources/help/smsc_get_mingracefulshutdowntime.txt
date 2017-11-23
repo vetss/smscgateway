@@ -1,0 +1,19 @@
+Name
+	smsc get mingracefulshutdowntime
+
+SYNOPSIS
+	smsc get mingracefulshutdowntime
+
+DESCRIPTION
+	This command is used to get the mingracefulshutdowntime value.
+	When a graceful shutdown procedure has started the server will
+	wait before shutdown start at least minGracefulShutDownTime time
+	(in seconds).
+	Default value is 20 (seconds).
+
+EXAMPLES
+	smsc get mingracefulshutdowntime
+
+SEE ALSO
+	smsc gsd, smsc set mingracefulshutdowntime,
+	smsc set maxgracefulshutdowntime

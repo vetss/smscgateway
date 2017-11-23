@@ -1014,6 +1014,13 @@ public class SMSCShellExecutor implements ShellExecutor {
             } else if (parName.equals("deliverypause")) {
                 boolean val = Boolean.parseBoolean(options[3]);
                 smscPropertiesManagement.setDeliveryPause(val);
+            } else if (parName.equals("mingracefulshutdowntime")) {
+                int val = Integer.parseInt(options[3]);
+                smscPropertiesManagement.setMinGracefulShutDownTime(val);
+            } else if (parName.equals("maxgracefulshutdowntime")) {
+                int val = Integer.parseInt(options[3]);
+                smscPropertiesManagement.setMaxGracefulShutDownTime(val);
+
             } else if (parName.equals("cassandrauser")) {
                 String val = String.valueOf(options[3]);
                 smscPropertiesManagement.setCassandraUser(val);
@@ -1288,6 +1295,11 @@ public class SMSCShellExecutor implements ShellExecutor {
 
             } else if (parName.equals("deliverypause")) {
                 sb.append(smscPropertiesManagement.isDeliveryPause());
+            } else if (parName.equals("mingracefulshutdowntime")) {
+                sb.append(smscPropertiesManagement.getMinGracefulShutDownTime());
+            } else if (parName.equals("maxgracefulshutdowntime")) {
+                sb.append(smscPropertiesManagement.getMaxGracefulShutDownTime());
+
             } else if (parName.equals("cassandrauser")) {
                 sb.append(smscPropertiesManagement.getCassandraUser());
             } else if (parName.equals("cassandrapass")) {
@@ -1659,6 +1671,14 @@ public class SMSCShellExecutor implements ShellExecutor {
             sb.append(smscPropertiesManagement.isDeliveryPause());
             sb.append("\n");
 
+            sb.append("mingracefulshutdowntime = ");
+            sb.append(smscPropertiesManagement.getMinGracefulShutDownTime());
+            sb.append("\n");
+
+            sb.append("maxgracefulshutdowntime = ");
+            sb.append(smscPropertiesManagement.getMaxGracefulShutDownTime());
+            sb.append("\n");
+
             sb.append("cassandrauser = ");
             sb.append(smscPropertiesManagement.getCassandraUser());
             sb.append("\n");
@@ -1987,7 +2007,7 @@ public class SMSCShellExecutor implements ShellExecutor {
 
     public String gsd(String[] args) throws Exception {
         SmscManagement smscManagement = SmscManagement.getInstance();
-        smscManagement.forceGracefullShutdown();
+        smscManagement.forceGracefulShutdown();
         return SMSCOAMMessages.GSD_STARTED;
     }
 

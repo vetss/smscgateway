@@ -228,18 +228,18 @@ public class SmscManagement implements SmscManagementMBean {
         return ruleClass;
     }
 
-    public void forceGracefullShutdown() {
+    public void forceGracefulShutdown() {
         String[] MBEAN_NAMES_LIST = { "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA" };
 
-        if (smscPropertiesManagement.isGracefullShuttingDown()) {
-            logger.info("Gracefull ShutDown procedure was already initiated");
+        if (smscPropertiesManagement.isGracefulShuttingDown()) {
+            logger.info("Graceful ShutDown procedure was already initiated");
             return;
         }
 
-        logger.info("Gracefull ShutDown procedure is initiating");
+        logger.warn("Graceful ShutDown procedure is initiating");
 
         try {
-            logger.info("Gracefull ShutDown : initiated of stopping of RAs - load-balancer-heartbeat-service");
+            logger.info("Graceful ShutDown : initiated of stopping of RAs - load-balancer-heartbeat-service");
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
             for (String beanName : MBEAN_NAMES_LIST) {
                 ObjectName objectName = new ObjectName(beanName);
@@ -254,8 +254,8 @@ public class SmscManagement implements SmscManagementMBean {
             logger.error("Exception when stopping of RAs - load-balancer-heartbeat-service : " + ee.getMessage(), ee);
         }
 
-        smscPropertiesManagement.setGracefullShutDownStart(new Date());
-        smscPropertiesManagement.setGracefullShuttingDown(true);
+        smscPropertiesManagement.setGracefulShutDownStart(new Date());
+        smscPropertiesManagement.setGracefulShuttingDown(true);
 
         gracefullShutdownTimerRestart();
     }
@@ -276,12 +276,12 @@ public class SmscManagement implements SmscManagementMBean {
         if (!this.isStarted)
             return;
 
-        logger.info("******* gracefullShutdownTimerEvent");
+//        logger.info("******* gracefullShutdownTimerEvent");
 
-        if (System.currentTimeMillis() - smscPropertiesManagement.getGracefullShutDownStart().getTime() > smscPropertiesManagement
-                .getMinGracefullShutDownTime() * 1000) {
-            if (System.currentTimeMillis() - smscPropertiesManagement.getGracefullShutDownStart().getTime() > smscPropertiesManagement
-                    .getMaxGracefullShutDownTime() * 1000) {
+        if (System.currentTimeMillis() - smscPropertiesManagement.getGracefulShutDownStart().getTime() > smscPropertiesManagement
+                .getMinGracefulShutDownTime() * 1000) {
+            if (System.currentTimeMillis() - smscPropertiesManagement.getGracefulShutDownStart().getTime() > smscPropertiesManagement
+                    .getMaxGracefulShutDownTime() * 1000) {
                 logger.info("Shutdown after maxGracefullShutDownTime is expire");
                 startServerShutdown();
                 return;
@@ -317,7 +317,7 @@ public class SmscManagement implements SmscManagementMBean {
                     Object[] args = {};
                     String[] sigs = {};
                     mbeanServer.invoke(mbeanName, "shutdown", args, sigs);
-                    logger.info("jboss 5 Gracefull ShutDown procedure: started of server shutting down");
+                    logger.warn("jboss 5 Gracefull ShutDown procedure: started of server shutting down");
                 } else {
                     logger.warn("jboss 5 Gracefull ShutDown procedure: can not find server jboss.system:type=Server - can not make shutdown");
                 }
@@ -330,9 +330,10 @@ public class SmscManagement implements SmscManagementMBean {
                 Object[] args = { false };
                 String[] sigs = { "java.lang.Boolean" };
                 mbeanServerConnection.invoke(mbeanName, "shutdown", args, sigs);
+                logger.warn("WildFly Gracefull ShutDown procedure: started of server shutting down");
             }
         } catch (Exception e1){
-            logger.info("Gracefull ShutDown procedure Exception: " + e1.getMessage(), e1);
+            logger.error("Gracefull ShutDown procedure Exception: " + e1.getMessage(), e1);
         }
     }
 
@@ -478,6 +479,10 @@ public class SmscManagement implements SmscManagementMBean {
                 + JMX_LAYER_SMSC_DATABASE_MANAGEMENT + ",name=" + this.getName());
         this.registerMBean(this.smscDatabaseManagement, SmscDatabaseManagement.class, true, smscDatabaseManagementObjName);
 
+        ObjectName smscManagementObjName = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer=" + JMX_LAYER_SMSC_MANAGEMENT
+                + ",name=" + this.getName());
+        this.registerMBean(this, SmscManagement.class, true, smscManagementObjName);
+
         this.isStarted = true;
 
         logger.warn("Started SmscManagemet " + name);
@@ -487,6 +492,10 @@ public class SmscManagement implements SmscManagementMBean {
 		logger.info("Stopping SmscManagemet " + name);
 
         gracefullShutdownTimerStop();
+
+        ObjectName smscManagementObjName = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer="
+                + JMX_LAYER_SMSC_MANAGEMENT + ",name=" + this.getName());
+        this.unregisterMbean(smscManagementObjName);
 
 		this.smscPropertiesManagement.stop();
 		ObjectName smscObjNname = new ObjectName(SmscManagement.JMX_DOMAIN + ":layer="

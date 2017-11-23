@@ -394,20 +394,20 @@ public interface SmscPropertiesManagementMBean {
 
     public String getCassandraPass();
 
-    public boolean isGracefullShuttingDown();
+    public boolean isGracefulShuttingDown();
 
-    public void setGracefullShuttingDown(boolean gracefullShuttingDown);
+    public void setGracefulShuttingDown(boolean gracefullShuttingDown);
 
-    public Date getGracefullShutDownStart();
+    public Date getGracefulShutDownStart();
 
-    public void setGracefullShutDownStart(Date gracefullShutDownStart);
+    public void setGracefulShutDownStart(Date gracefullShutDownStart);
 
-    public int getMinGracefullShutDownTime();
+    public int getMinGracefulShutDownTime();
 
-    public void setMinGracefullShutDownTime(int minGracefullShutDownTme);
+    public void setMinGracefulShutDownTime(int minGracefullShutDownTme);
 
-    public int getMaxGracefullShutDownTime();
+    public int getMaxGracefulShutDownTime();
 
-    public void setMaxGracefullShutDownTime(int maxGracefullShutDownTme);
+    public void setMaxGracefulShutDownTime(int maxGracefullShutDownTme);
 
 }

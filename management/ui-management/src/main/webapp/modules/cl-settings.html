@@ -1,0 +1,138 @@
+					<h3 style="margin: 0px;"><i class="icon-th"></i>Graceful shutdown</h3>
+					<hr style="margin: 10 0px;"/>
+					
+					<link href="resources/css/bootstrap-slider.css" rel="stylesheet">
+					<script type="text/javascript" src="resources/js/bootstrap-slider.js"></script>
+					
+					
+					<p>
+						<br/>
+					</p> 
+					
+					<div class="alert alert-error" id="login-settings-error" style="display:none;">
+					  <button type="button" class="close">&times;</button>
+					  Some Fields are not correctly filled out, please double check the settings below !
+					</div>
+					
+
+					<h5>Graceful shutdown properties</h5>						
+					<div id="dbrr-update-configuration-wrapper">
+						<div class="input-prepend">
+                        	<div id="div-mingracefulshutdowntime" class="control-group">
+								<span class="input-prepend" data-toggle="tooltip" data-placement="bottom" title="set a value for minimum graceful shutdown procedure time. When a graceful shutdown procedure has started the server will wait before shutdown start at least this time (in seconds) even no pending dialogs more.">
+									<span class="add-on">Minimum graceful shutdown time (in seconds)</span>
+									<input id="mingracefulshutdowntime" type="text" class="input-mini" style="width: 120px; margin-right: 12px; text-align: center;" value="0" />
+								</span>
+							</div>	
+                        	<div id="div-maxgracefulshutdowntime" class="control-group">
+								<span class="input-prepend" data-toggle="tooltip" data-placement="bottom" title="set a value for maximum graceful shutdown procedure time. When a graceful shutdown procedure has started the server will make shutdown after this time (in seconds) even if even there are still pending dialogs.">
+									<span class="add-on">Maximum graceful shutdown time (in seconds)</span>
+									<input id="maxgracefulshutdowntime" type="text" class="input-mini" style="width: 120px; margin-right: 12px; text-align: center;" value="0" />
+								</span>
+							</div>	
+
+
+						</div>
+						<div class="row">
+							<span class="span12" style="text-align: right;">
+									&nbsp;<button class="btn btn-danger" onclick="updateProperties();"><i class="icon-undo"></i> Revert</button>
+									&nbsp;<button class="btn btn-primary" onclick="applyProperties();"><i class="icon-save"></i> Save</button>
+							</span>
+						</div>						
+					</div>
+					
+					<hr />
+					
+					<h5>Force a graceful shutdown procedure</h5>
+					<div id="dbrr-delete-configuration-wrapper">
+						<div class="row">
+							<span class="span12">
+								&nbsp;<button class="btn btn-primary" onclick="gsd();"><i class="icon-remove"></i> Force graceful shutdown</button>
+							</span>
+						</div>						
+					</div>	
+					
+					<hr />
+					
+				<script type="text/javascript">
+					$('#login-settings-error .close').on("click", function(e) {
+					    $(this).parent().hide();
+					});
+
+					$(document).ready(function () {												
+						updateProperties();		
+	    			});	
+					
+					function updateProperties() {
+						mbeanSearch="org.mobicents.smsc:layer=SmscPropertiesManagement,name=SmscManagement";
+						jolokia.request(
+								[
+									{ type: "read", mbean: mbeanSearch },
+								],
+								{ success: [
+									function(response) {
+										$("#mingracefulshutdowntime").val(response.value.MinGracefulShutDownTime);
+										$("#maxgracefulshutdowntime").val(response.value.MaxGracefulShutDownTime);
+									}],
+									error: function(value) {
+										errorUID = ("st" + new Date().getTime()).hashCode();
+										createStackTrace(errorUID, value.stacktrace);
+										logToConsole("ERROR", value.error + ". (<a href=\"#" + errorUID + "-modal\" data-toggle=\"modal\">Full Stack Trace</a>)");										
+									} 
+								}
+							);						
+					}
+
+					function applyProperties() {
+						var formInvalid = false;
+						
+						var mingracefulshutdowntime = $("#mingracefulshutdowntime").val();
+						if(mingracefulshutdowntime.trim() == "") {
+			    			$("#div-mingracefulshutdowntime").addClass("error");					    			
+			    			formInvalid = true;
+			    		} else if($("#div-mingracefulshutdowntime").hasClass("error")) {
+			    			$("#div-mingracefulshutdowntime").removeClass("error");		
+			    		}
+						
+						if(formInvalid) {
+							$("#login-settings-error").show();
+							logToConsole("ERROR", "Some Fields are not correctly filled out, please double check the settings !");
+							return false;
+						} else {
+							$("#login-settings-error").hide();
+						}
+						
+						
+						mbeanSearch="org.mobicents.smsc:layer=SmscPropertiesManagement,name=SmscManagement";
+						jolokia.request(
+								[
+									{ type: "write", mbean: mbeanSearch, attribute: "MinGracefulShutDownTime", value: mingracefulshutdowntime },
+								],
+								{
+									success: function(response) {
+										logToConsole("INFO", "SMSC Gateway Properties successfully updated.");
+									},
+									error: function(response) {
+										logToConsole("ERROR", "Failure trying to communicate with the RestComm SMSC Gateway. Please try again later.");
+									} 
+								}
+							);
+					}	
+					
+					function gsd() {
+						mbeanSearch="org.mobicents.smsc:layer=SmscManagement,name=SmscManagement";
+						jolokia.execute(mbeanSearch,"forceGracefulShutdown",
+									{
+										success: function(value) {
+											logToConsole('INFO', 'A graceful shutdown procedure has started' );
+										},
+										error: function(value){
+											errorUID = ("st" + new Date().getTime()).hashCode();
+											createStackTrace(errorUID, value.stacktrace);
+											logToConsole("ERROR", value.error + ". (<a href=\"#" + errorUID + "-modal\" data-toggle=\"modal\">Full Stack Trace</a>)");
+										}
+									});	
+					}	
+					
+					
+				</script>

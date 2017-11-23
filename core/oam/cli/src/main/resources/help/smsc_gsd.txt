@@ -1,0 +1,18 @@
+Name
+	smsc gsd
+
+SYNOPSIS
+	smsc gsd
+
+DESCRIPTION
+	This command is used to start a graceful shutdown procedure
+	for a server. This procedure means that a server will continue
+	the work till all existing dialogs are completed. At the graceful
+	shutdown procedure start the server sends announsements to
+	a load-balancer server that the node is going to shutdown soon.  
+
+EXAMPLES
+	smsc gsd
+
+SEE ALSO
+	smsc get maxngracefulshutdowntime, smsc set mingracefulshutdowntime

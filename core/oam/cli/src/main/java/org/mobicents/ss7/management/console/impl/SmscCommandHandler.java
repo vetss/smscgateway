@@ -139,6 +139,8 @@ public class SmscCommandHandler extends CommandHandlerWithHelp {
 //        set.addChild("cdrdatabaseexportduration");
         set.addChild("esmedefaultcluster");
         set.addChild("deliverypause");
+        set.addChild("mingracefulshutdowntime");
+        set.addChild("maxgracefulshutdowntime");
         set.addChild("receiptsdisabling");
         set.addChild("incomereceiptsprocessing");
         set.addChild("orignetworkidforreceipts");
@@ -212,6 +214,8 @@ public class SmscCommandHandler extends CommandHandlerWithHelp {
 //        get.addChild("cdrdatabaseexportduration");
         get.addChild("esmedefaultcluster");
         get.addChild("deliverypause");
+        get.addChild("mingracefulshutdowntime");
+        get.addChild("maxgracefulshutdowntime");
         get.addChild("receiptsdisabling");
         get.addChild("incomereceiptsprocessing");
         get.addChild("orignetworkidforreceipts");
@@ -260,6 +264,8 @@ public class SmscCommandHandler extends CommandHandlerWithHelp {
         httpuser.addChild("show");
 
         Node skipUnsentMessages = parent.addChild("skipunsentmessages");
+
+        Node gsd = parent.addChild("gsd");
 
 	};
 
