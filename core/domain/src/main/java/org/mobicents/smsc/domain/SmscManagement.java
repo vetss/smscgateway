@@ -28,6 +28,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -229,7 +230,7 @@ public class SmscManagement implements SmscManagementMBean {
     }
 
     public void forceGracefulShutdown() {
-        String[] MBEAN_NAMES_LIST = { "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA" };
+//        String[] MBEAN_NAMES_LIST = { "org.mobicents.resources.smpp-server-ra-ra:type=load-balancer-heartbeat-service,name=SmppServerRA" };
 
         if (smscPropertiesManagement.isGracefulShuttingDown()) {
             logger.info("Graceful ShutDown procedure was already initiated");
@@ -240,9 +241,13 @@ public class SmscManagement implements SmscManagementMBean {
 
         try {
             logger.info("Graceful ShutDown : initiated of stopping of RAs - load-balancer-heartbeat-service");
-            MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            for (String beanName : MBEAN_NAMES_LIST) {
-                ObjectName objectName = new ObjectName(beanName);
+            MBeanServer mBeanServer = MBeanServerLocator.locateJBoss();
+            // MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer(); TODO: this for WildFly (?)
+
+            ObjectName objectName0 = new ObjectName("*:name=*,type=load-balancer-heartbeat-service");
+            Set<ObjectName> nn = mBeanServer.queryNames(objectName0, null);
+            for (ObjectName objectName : nn) {
+                String beanName = objectName.getCanonicalName();
                 if (mBeanServer.isRegistered(objectName)) {
                     mBeanServer.invoke(objectName, "stop", new Object[] {}, new String[] {});
                     logger.info("load-balancer-heartbeat-service stopped: " + beanName);
